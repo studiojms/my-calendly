@@ -1,27 +1,23 @@
-import Router from 'next/router';
 import Link from 'next/link';
 import { Button } from '@chakra-ui/button';
 import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control';
-import { Input, InputGroup, InputLeftAddon } from '@chakra-ui/input';
+import { Input } from '@chakra-ui/input';
 import { Box, Container, Heading, Text } from '@chakra-ui/layout';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import { useToast } from '@chakra-ui/react';
+import AuthenticationUtils from '../../utils/AuthenticationUtils';
 
-export default function Home() {
-  const toast = useToast();
-
+function Login({ onAuth }) {
   const validationSchema = yup.object().shape({
     email: yup.string().email('Invalid email').required('Required field'),
     password: yup.string().required('Required field'),
-    username: yup.string().required('Required field'),
   });
 
   const { values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit } = useFormik({
     onSubmit: async (values, form) => {
       const params = { ...values, password_confirmation: values.password };
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/users`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/auth/login`, {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -30,14 +26,10 @@ export default function Home() {
           body: JSON.stringify(params),
         });
 
-        toast({
-          title: 'Account created.',
-          description: 'Account successfully created. Now you can sign in.',
-          status: 'success',
-          isClosable: true,
-        });
+        const data = await response.json();
 
-        Router.push('/');
+        AuthenticationUtils.setAuthenticationToken(data);
+        onAuth(data);
       } catch (err) {
         console.error(err);
       }
@@ -45,7 +37,6 @@ export default function Home() {
     validationSchema,
     initialValues: {
       email: '',
-      username: '',
       password: '',
     },
   });
@@ -68,24 +59,18 @@ export default function Home() {
           {touched.password && <FormHelperText textColor={'#e74c3c'}>{errors.password}</FormHelperText>}
         </FormControl>
 
-        <FormControl id="username" p={4} isRequired>
-          <InputGroup size="lg">
-            <InputLeftAddon>mycalendar.com/</InputLeftAddon>
-            <Input type="text" value={values.username} onChange={handleChange} onBlur={handleBlur} />
-          </InputGroup>
-          {touched.username && <FormHelperText textColor={'#e74c3c'}>{errors.username}</FormHelperText>}
-        </FormControl>
-
         <Box p={4}>
           <Button colorScheme="blue" width="100%" isLoading={isSubmitting} onClick={handleSubmit}>
-            Sign up
+            Sign in
           </Button>
         </Box>
 
         <Container centerContent p={4}>
-          <Link href="/">Already have an account? Sign in</Link>
+          <Link href="/signup">Don&apos;t have an account? Sign up</Link>
         </Container>
       </Box>
     </Container>
   );
 }
+
+export default Login;
