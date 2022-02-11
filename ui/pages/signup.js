@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@chakra-ui/button';
 import { FormControl, FormHelperText, FormLabel } from '@chakra-ui/form-control';
-import { Input } from '@chakra-ui/input';
+import { Input, InputGroup, InputLeftAddon } from '@chakra-ui/input';
 import { Box, Container, Heading, Text } from '@chakra-ui/layout';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
@@ -10,13 +10,14 @@ export default function Home() {
   const validationSchema = yup.object().shape({
     email: yup.string().email('Invalid email').required('Required field'),
     password: yup.string().required('Required field'),
+    username: yup.string().required('Required field'),
   });
 
   const { values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit } = useFormik({
     onSubmit: async (values, form) => {
       const params = { ...values, password_confirmation: values.password };
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/auth/login`, {
+        await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/users`, {
           method: 'POST',
           headers: {
             Accept: 'application/json',
@@ -31,6 +32,7 @@ export default function Home() {
     validationSchema,
     initialValues: {
       email: '',
+      username: '',
       password: '',
     },
   });
@@ -53,6 +55,14 @@ export default function Home() {
           {touched.password && <FormHelperText textColor={'#e74c3c'}>{errors.password}</FormHelperText>}
         </FormControl>
 
+        <FormControl id="username" p={4} isRequired>
+          <InputGroup size="lg">
+            <InputLeftAddon>mycalendar.com/</InputLeftAddon>
+            <Input type="text" value={values.username} onChange={handleChange} onBlur={handleBlur} />
+          </InputGroup>
+          {touched.username && <FormHelperText textColor={'#e74c3c'}>{errors.username}</FormHelperText>}
+        </FormControl>
+
         <Box p={4}>
           <Button colorScheme="blue" width="100%" isLoading={isSubmitting} onClick={handleSubmit}>
             Sign up
@@ -60,7 +70,7 @@ export default function Home() {
         </Box>
 
         <Container centerContent p={4}>
-          <Link href="/signup">Don&apos;t have an account? Sign up</Link>
+          <Link href="/">Already have an account? Sign in</Link>
         </Container>
       </Box>
     </Container>
