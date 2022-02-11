@@ -1,24 +1,22 @@
 class AuthenticationController < ApplicationController
-    skip_before_action :authenticate, only: [:login]
-    
-    def login
-        @user = User.find_by(username: params[:username])
+  before_action :authorize_request, except: :login
 
-        if @user
-            if @user.authenticate(params[:password])
-                payload = { user_id: @user.id }
-                secret = ENV['SECRET_KEY_BASE'] || Rails.application.secrets.secret_key_base
-                token = create_token(payload)
+  def login
+    @user = User.find_by(username: params[:username])
 
-                render json: { username: @user.username }
-                response.set_header('auth-token', token)
-                
-            else
-                render json: {message: "Authentication Failed"}, status: :unauthorized
-            end            
-        else
-            render json: {message: "Could not find user"}, status: :unauthorized
-        end
+    if @user&.authenticate(params[:password])
+      token = JsonWebToken.encode(user_id: @user.id)
+      time = Time.now + 24.hours.to_i
+
+      render json: { token: token, exp: time.strftime('%m-%d-%Y %H:%M'), username: @user.username }, status: :ok
+    else
+      render json: { message: 'Authentication Failed' }, status: :unauthorized
     end
+  end
 
+  private
+
+  def login_params
+    params.permit(:username, :password)
+  end
 end
