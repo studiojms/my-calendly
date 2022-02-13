@@ -1,23 +1,13 @@
 import { Container, Spinner } from '@chakra-ui/react';
-import { useEffect, useState } from 'react';
+
+import { useAuth } from '../components/Auth';
 import Login from '../components/Login';
 import Schedule from '../components/Schedule';
-import AuthenticationUtils from '../utils/AuthenticationUtils';
 
 export default function Home() {
-  const [loading, setLoading] = useState(true);
-  const [auth, setAuth] = useState();
+  const [auth] = useAuth();
 
-  useEffect(() => {
-    setLoading(true);
-
-    const authentication = AuthenticationUtils.getAuthenticationToken();
-    setAuth(authentication);
-
-    setLoading(false);
-  }, [auth]);
-
-  if (loading) {
+  if (auth.loading) {
     return (
       <Container p={4}>
         <Spinner />
@@ -25,5 +15,5 @@ export default function Home() {
     );
   }
 
-  return auth ? <Schedule /> : <Login onAuth={setAuth} />;
+  return auth.user ? <Schedule /> : <Login />;
 }

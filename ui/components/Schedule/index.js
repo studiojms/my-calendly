@@ -1,10 +1,9 @@
 import { Button, Container, Heading } from '@chakra-ui/react';
-import AuthenticationUtils from '../../utils/AuthenticationUtils';
+
+import { useAuth } from '../Auth';
 
 export default function Schedule() {
-  const logout = () => {
-    AuthenticationUtils.clearAuthenticationToken();
-  };
+  const [, { logout }] = useAuth();
 
   return (
     <Container centerContent p={4}>

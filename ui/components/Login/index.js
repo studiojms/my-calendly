@@ -5,35 +5,19 @@ import { Input } from '@chakra-ui/input';
 import { Box, Container, Heading, Text } from '@chakra-ui/layout';
 import { useFormik } from 'formik';
 import * as yup from 'yup';
-import AuthenticationUtils from '../../utils/AuthenticationUtils';
 
-function Login({ onAuth }) {
+import { useAuth } from '../Auth';
+
+function Login() {
+  const [, { login }] = useAuth();
+
   const validationSchema = yup.object().shape({
     email: yup.string().email('Invalid email').required('Required field'),
     password: yup.string().required('Required field'),
   });
 
   const { values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit } = useFormik({
-    onSubmit: async (values, form) => {
-      const params = { ...values, password_confirmation: values.password };
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/auth/login`, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(params),
-        });
-
-        const data = await response.json();
-
-        AuthenticationUtils.setAuthenticationToken(data);
-        onAuth(data);
-      } catch (err) {
-        console.error(err);
-      }
-    },
+    onSubmit: login,
     validationSchema,
     initialValues: {
       email: '',

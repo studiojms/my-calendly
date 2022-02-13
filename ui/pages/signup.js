@@ -8,7 +8,10 @@ import { useFormik } from 'formik';
 import * as yup from 'yup';
 import { useToast } from '@chakra-ui/react';
 
+import { useAuth } from '../components/Auth';
+
 export default function Home() {
+  const [, { signup }] = useAuth();
   const toast = useToast();
 
   const validationSchema = yup.object().shape({
@@ -18,17 +21,9 @@ export default function Home() {
   });
 
   const { values, errors, touched, isSubmitting, handleChange, handleBlur, handleSubmit } = useFormik({
-    onSubmit: async (values, form) => {
-      const params = { ...values, password_confirmation: values.password };
+    onSubmit: (values) => {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_ROOT}/users`, {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(params),
-        });
+        signup(values);
 
         toast({
           title: 'Account created.',
